@@ -18,7 +18,7 @@ app.use("/customer/auth/*", function auth(req,res,next){
     }
 
     // Verify the token
-    jwt.verify(token, "your_secret_key", (err, decoded) => {
+    jwt.verify(token, "seckey", (err, decoded) => {
         if (err) {
             return res.status(401).json({ message: "Invalid token" });
         }
