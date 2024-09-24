@@ -57,24 +57,40 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  const { review } = req.query; // Get review from query parameters
-    const { isbn } = req.params; // Get ISBN from request parameters
-    const username = req.session.username; // Get username from session
+  const { review } = req.query;
+  const { isbn } = req.params;
 
-    // Check if the user is authenticated
-    if (!username) {
-        return res.status(403).json({ message: "User not logged in" });
-    }
+  // Extract the token from Authorization header
+  const token = req.headers['authorization'];
 
-    // Check if the review is provided
-    if (!review) {
-        return res.status(400).json({ message: "Review text is required" });
-    }
+  if (!token) {
+      return res.status(403).json({ message: "Access denied, no token provided" });
+  }
 
-    // Find the book by ISBN
-    const book = books[isbn];
-    if (!book) {
-        return res.status(404).json({ message: "Book not found" });
+  // Verify token and extract the username
+  jwt.verify(token.split(' ')[1], 'your_secret_key', (err, decoded) => {
+      if (err) {
+          return res.status(401).json({ message: "Invalid token" });
+      }
+
+      const username = decoded.username; // Get the username from the token
+
+      // Check if review is provided
+      if (!review) {
+          return res.status(400).json({ message: "Review text is required" });
+      }
+
+      // Find the book by ISBN
+      const book = books[isbn];
+      if (!book) {
+          return res.status(404).json({ message: "Book not found" });
+      }
+
+      // Add or modify the review
+      book.reviews[username] = review; // Update or add review for the user
+
+      return res.status(200).json({ message: "Review added/modified successfully" });
+  });
     }
 
     // Add or modify the review
