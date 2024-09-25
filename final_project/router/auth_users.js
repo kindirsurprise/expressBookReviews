@@ -5,23 +5,6 @@ const regd_users = express.Router();
 
 let users = [];
 
-regd_users.post("/register", (req, res) => {
-    const { username, password } = req.body;
-
-    // Check if username and password are provided
-    if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
-    }
-
-    // Check if the username already exists
-    if (!isValid(username)) {
-        return res.status(400).json({ message: "Username already exists" });
-    }
-
-    // Add the new user
-    users.push({ username, password }); // Remember to hash passwords in a real app!
-    return res.status(201).json({ message: "User registered successfully" });
-});
 
 const isValid = (username)=>{ //returns boolean
     return !users.find(user => user.username === username);
