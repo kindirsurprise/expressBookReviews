@@ -5,7 +5,6 @@ const regd_users = express.Router();
 
 let users = [];
 
-
 const isValid = (username)=>{ //returns boolean
     return !users.find(user => user.username === username);
 }
@@ -35,51 +34,30 @@ regd_users.post("/login", (req,res) => {
     // Save the token to the session
     req.session.token = token;
 
-    return res.status(200).json({ message: "Login successful" });
+    return res.status(200).json({ message: "Login successful", token});
 });
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  const { review } = req.query;
-  const { isbn } = req.params;
+    const { isbn } = req.params;
+    const { review } = req.body;
 
-  // Extract the token from Authorization header
-  const token = req.headers['authorization'];
-
-  if (!token) {
-      return res.status(403).json({ message: "Access denied, no token provided" });
-  }
-
-  // Verify token and extract the username
-  jwt.verify(token.split(' ')[1], 'seckey', (err, decoded) => {
-      if (err) {
-          return res.status(401).json({ message: "Invalid token" });
-      }
-
-      const username = decoded.username; // Get the username from the token
-
-      // Check if review is provided
-      if (!review) {
-          return res.status(400).json({ message: "Review text is required" });
-      }
-
-      // Find the book by ISBN
-      const book = books[isbn];
-      if (!book) {
-          return res.status(404).json({ message: "Book not found" });
-      }
-
-      // Add or modify the review
-      book.reviews[username] = review; // Update or add review for the user
-
-      return res.status(200).json({ message: "Review added/modified successfully" });
-  });
+    // Step 1: Check if the book exists
+    const book = books[isbn];
+    if (!book) {
+        return res.status(404).json({ message: "Book not found" });
     }
 
-    // Add or modify the review
-    book.reviews[username] = review; // Update or add review for the user
+    // Step 2: Check if the review is provided
+    if (!review) {
+        return res.status(400).json({ message: "Review content is required" });
+    }
 
-    return res.status(200).json({ message: "Review added/modified successfully" });
+    // Step 3: Store the review, using the username as the key (from JWT session)
+    const username = req.username; // Make sure the auth middleware sets req.username
+    book.reviews[username] = review;
+
+    return res.status(200).json({ message: "Review added successfully", book });
 });
 
 regd_users.delete("/auth/review/:isbn", (req, res) => {
@@ -106,6 +84,7 @@ regd_users.delete("/auth/review/:isbn", (req, res) => {
 
     return res.status(200).json({ message: "Review deleted successfully", reviews });
 });
+
 
 
 module.exports.authenticated = regd_users;
