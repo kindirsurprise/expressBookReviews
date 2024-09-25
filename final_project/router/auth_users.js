@@ -82,6 +82,32 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     return res.status(200).json({ message: "Review added/modified successfully" });
 });
 
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const { isbn } = req.params;
+
+    // Step 1: Retrieve the book using the provided ISBN
+    const book = books[isbn];
+
+    // Step 2: Check if the book exists
+    if (!book) {
+        return res.status(404).json({ message: "Book not found" });
+    }
+
+    // Step 3: Check if the user has a review for this book
+    const username = req.username;  // Assume req.username is set by the authentication middleware
+    const reviews = book.reviews;
+
+    if (!reviews[username]) {
+        return res.status(403).json({ message: "No review found for this user" });
+    }
+
+    // Step 4: Delete the user's review
+    delete reviews[username];
+
+    return res.status(200).json({ message: "Review deleted successfully", reviews });
+});
+
+
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
 module.exports.users = users;
