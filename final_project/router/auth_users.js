@@ -68,7 +68,7 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   }
 
   // Verify token and extract the username
-  jwt.verify(token.split(' ')[1], 'your_secret_key', (err, decoded) => {
+  jwt.verify(token.split(' ')[1], 'seckey', (err, decoded) => {
       if (err) {
           return res.status(401).json({ message: "Invalid token" });
       }
